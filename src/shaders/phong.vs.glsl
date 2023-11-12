@@ -57,7 +57,7 @@ void main()
     
     for (int i = 0; i < 3; i++) {
         attribOut.lightDir[i] = normalize(vec3(view * vec4(lights[i].position, 1.0)) - fragPos);
-        attribOut.spotDir[i] = normalize(vec3(view * vec4(lights[i].spotDirection, 0.0)));
+        attribOut.spotDir[i] = normalize(mat3(view) * -lights[i].spotDirection);
     }
     
     attribOut.obsPos = -fragPos;
