@@ -193,7 +193,6 @@ void StencilTestScene::render(glm::mat4& view, glm::mat4& projPersp)
 
     }
 
-    glDisable(GL_DEPTH_TEST);
     for (int i = 0; i < N_ENEMY_MONKEE; i++)
     {
         glStencilFunc(GL_NOTEQUAL, 1 << (i + 1), 1 << (i + 1));
@@ -203,8 +202,7 @@ void StencilTestScene::render(glm::mat4& view, glm::mat4& projPersp)
         glUniformMatrix4fv(m_res.mvpLocationSimple, 1, GL_FALSE, &enemyFinalTransform[i][0][0]);
         m_res.suzanne.draw();
     }
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+
     glDisable(GL_STENCIL_TEST);
 }
 
