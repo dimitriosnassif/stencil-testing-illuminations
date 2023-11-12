@@ -45,20 +45,19 @@ out vec4 FragColor;
 
 float computeSpot(in vec3 spotDir, in vec3 lightDir, in vec3 normal)
 {
+    float intensity = 0.0;
     float cosGamma = dot(lightDir, spotDir);
-    float cosDelta = cos(spotOpeningAngle);
-    if (cosGamma > cosDelta) {
-        if (useDirect3D) {
-            float cosThetaInner = cosDelta;
-            float cosThetaOuter = pow(cosDelta, 1.01 + spotExponent / 2);
-            float intensity = smoothstep(cosThetaOuter, cosThetaInner, cosGamma);
-            return intensity;
-        } else {
-            float intensity = pow(cosGamma, spotExponent);
-            return intensity;
+    float cosDelta = cos(radians(spotOpeningAngle));
+    if (useDirect3D) {
+        float cosThetaInner = cosDelta;
+        float cosThetaOuter = pow(cosDelta, 1.01 + spotExponent / 2);
+        intensity = smoothstep(cosThetaOuter, cosThetaInner, cosGamma);
+    } else if (dot(spotDir, normal) >= 0.0) {
+        if (cosGamma > cosDelta) {
+            intensity = pow(cosGamma, spotExponent);
         }
     }
-    return 0.0;
+    return intensity;
 }
 
 vec3 computeLight(in int lightIndex, in vec3 normal, in vec3 lightDir, in vec3 obsPos)
