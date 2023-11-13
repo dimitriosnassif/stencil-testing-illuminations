@@ -6,3 +6,4 @@ Stencil testing and illuminations using OpenGL
 
 ![image](https://github.com/dimitriosnassif/stencil-testing-illuminations/assets/90000821/c23d1189-aeda-44ea-bc01-3649d9dd5f17)
 
+                      Phong                                      Gouraud                                           Flat      
