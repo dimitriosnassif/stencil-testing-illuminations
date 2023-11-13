@@ -45,19 +45,19 @@ out vec4 FragColor;
 
 float computeSpot(in vec3 spotDir, in vec3 lightDir, in vec3 normal)
 {
-    float theta = dot(-lightDir, spotDir);
-    if (theta > cos(spotOpeningAngle)) {
-        if (useDirect3D) {
-            float phi = cos(spotOpeningAngle) - 0.01;
-            float intensity = clamp((theta - phi) / (1.0 - phi), 0.0, 1.0);
-            return intensity;
-        } else {
-            float epsilon = cos(spotOpeningAngle) - 0.01;
-            float intensity = clamp((theta - epsilon) / (cos(spotOpeningAngle) - epsilon), 0.0, 1.0);
-            return pow(intensity, spotExponent);
+    float intensity = 0.0;
+    float cosGamma = dot(lightDir, spotDir);
+    float cosDelta = cos(radians(spotOpeningAngle));
+    if (useDirect3D) {
+        float cosThetaInner = cosDelta;
+        float cosThetaOuter = pow(cosDelta, 1.01 + spotExponent / 2);
+        intensity = smoothstep(cosThetaOuter, cosThetaInner, cosGamma);
+    } else if (dot(spotDir, normal) >= 0.0) {
+        if (cosGamma > cosDelta) {
+            intensity = pow(cosGamma, spotExponent);
         }
     }
-    return 0.0;
+    return intensity;
 }
 
 vec3 computeLight(in int lightIndex, in vec3 normal, in vec3 lightDir, in vec3 obsPos)
@@ -68,9 +68,9 @@ vec3 computeLight(in int lightIndex, in vec3 normal, in vec3 lightDir, in vec3 o
     vec3 diffuse = lights[lightIndex].diffuse * (diff * mat.diffuse);
     
     vec3 viewDir = normalize(obsPos);
-    vec3 halfDir = normalize(lightDir + viewDir);
     float spec = 0.0;
     if (useBlinn) {
+        vec3 halfDir = normalize(lightDir + viewDir);
         spec = pow(max(dot(normal, halfDir), 0.0), mat.shininess);
     } else {
         vec3 reflectDir = reflect(-lightDir, normal);
@@ -81,19 +81,23 @@ vec3 computeLight(in int lightIndex, in vec3 normal, in vec3 lightDir, in vec3 o
     return ambient + diffuse + specular;
 }
 
-void main()
+void main() 
 {
     vec3 normal = normalize(attribIn.normal);
     vec3 result = mat.emission;
-    
+
     for (int i = 0; i < 3; i++) {
-        result += computeLight(i, normal, attribIn.lightDir[i], attribIn.obsPos);
+        vec3 lightContribution = computeLight(i, normal, attribIn.lightDir[i], attribIn.obsPos);
+
         if (useSpotlight) {
-            result *= computeSpot(attribIn.spotDir[i], attribIn.lightDir[i], normal);
+            float spotIntensity = computeSpot(attribIn.spotDir[i], attribIn.lightDir[i], normal);
+            lightContribution *= spotIntensity;
         }
+
+        result += lightContribution;
     }
-    
+
     result += lightModelAmbient * mat.ambient;
-    
+
     FragColor = vec4(result, 1.0) * texture(textureSampler, attribIn.texCoords);
 }
