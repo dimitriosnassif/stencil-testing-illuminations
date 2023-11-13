@@ -81,7 +81,8 @@ vec3 computeLight(in int lightIndex, in vec3 normal, in vec3 lightDir, in vec3 o
     return ambient + diffuse + specular;
 }
 
-void main() {
+void main() 
+{
     vec3 normal = normalize(attribIn.normal);
     vec3 result = mat.emission;
 
